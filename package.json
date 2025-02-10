@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongodb": "^6.13.0",
+    "mongoose": "^8.10.0"
+  },
+  "name": "devtinder-backend",
+  "version": "1.0.0",
+  "description": "Mongodb, devTinder, ",
+  "main": "Database.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Amaan Siddiquie",
+  "license": "ISC"
+}
