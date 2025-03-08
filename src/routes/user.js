@@ -1,94 +1,77 @@
 const express = require("express");
-const router = express.Router();
+const userRouter = express.Router();
+const { userAuth } = require("../middlewares/auth");
+const UserModel = require("../models/user");
+const connectionRequestModel = require("../models/connectionRequest");
 
-const { userAuth } = require("../middleware/auth");
-const connectionRequest = require("../models/connectionRequest");
+userRouter.get("/user/request/recieved", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
 
-const USER_SAFE_DATA = "firstname lastaname photoUrl age gender about skills";
+    const connectionRequests =  connectionRequestModel.find({
+        toUserId: loggedInUser.id,
+        status: "interested",
+    }).populate("fromUserId", "name");
+    
+    const data = await connectionRequests;
+    res.json({
+      message: "Getting the requests",
+      data,
+    });
 
-// Get all pending connection requests
+  } catch (err) {
+    console.log(err);
+    res.status(400).send("Error : " + err.message);
+  }
+});
 
-// router.get("/user/requests/recieved", userAuth, async (req, res) => {
-//   try {
-//       const loggedInUser = req.user;
+userRouter.get("/user/connections", userAuth, async (req, res) => {
+   
+  const loggedInUser = req.user;
+  try{
+    const connections = await connectionRequestModel.find({
+      $or: [
+        { toUserId: loggedInUser.id, status: "accepted" },
+        { fromUserId: loggedInUser.id, status: "accepted" },
+      ],
+    }).populate("fromUserId", "name")
 
-//     const connectionRequests = await connectionRequest.find({
-//       toUserId: loggedInUser._id,
-//       status: "interested",
-//     }).populate("fromUserId", USER_SAFE_DATA);
+    const data = connections.map((connection) => connection.fromUserId);
 
-//     res.json({
-//         message: "Data Fetched Successfully",
-//         data : connectionRequests,
-//     })
+    res.json({
+      message: "Getting the connections",
+      data,
+    });
 
-//     // res.send(requests);
-//   } catch (error) {
-//     res.statusCode(400).send("Error" + error.message);
-//   }
-// });
+  } catch (err) {
+    console.log(err);
+    res.status(400).send("Error : " + err.message);
+  }
+});
 
-// router.get("/user/connections", userAuth, async (req, res) => {
-//     try {
-//         const loggedInUser = req.user;
-  
-//       const connectionRequests = await connectionRequest.find({
-//         $or: [
-//         {toUserId: loggedInUser._id,
-//         status: "accepted"},
-//         {fromUserId: loggedInUser._id,
-//         status: "accepted"},
-//     ],
-//       })
-//       .populate("fromUserId", USER_SAFE_DATA)
-//         .populate("toUserId", USER_SAFE_DATA);
+userRouter.get("/user/feed", userAuth, async (req, res) => {
+  const loggedInUser = req.user;
+  try {
+    const connections = await connectionRequestModel.find({
+      $or: [
+        { toUserId: loggedInUser.id },
+        { fromUserId: loggedInUser.id },
+      ],
+    })
 
-//         console.log(connectionRequests);
-  
-//       res.json({
-//           message: "Data Fetched Successfully",
-//           data : connectionRequests,
-//       })
-  
-//       // res.send(requests);
-//     } catch (error) {
-//       res.statusCode(400).send("Error" + error.message);
-//     }
-//   });
+    const data = await UserModel.find({
+      _id: { $nin: [loggedInUser.id, connections.toUserId] },
+    });
 
-router.get("/feed", userAuth, async (req, res) => { 
-    try {
-        const loggedInUser = req.user;
+    res.json({
+      message: "Getting the feed",
+      data,
+    });
 
-        const connectionRequests = await connectionRequest.find({
-            $or: [
-            {toUserId: loggedInUser._id},
-            {fromUserId: loggedInUser._id},
-        ],
-        }).select("fromUserId toUserId status");
-        res.send(connectionRequests);
-        // .populate("fromUserId", USER_SAFE_DATA)
-        // .populate("toUserId", USER_SAFE_DATA);
+  } catch (err) {
+    console.log(err);
+    res.status(400).send("Error : " + err.message);
+  }
+});
 
-        // const userIds = connectionRequests.map((connectionRequest) => {
-        //     if (connectionRequest.fromUserId._id.toString() === loggedInUser._id.toString()) {
-        //         return connectionRequest.toUserId._id;
-        //     } else {
-        //         return connectionRequest.fromUserId._id;
-        //     }
-        // });
-
-        // const feed = await User.find({
-        //     _id: { $in: userIds },
-        // });
-
-        // res.json({
-        //     message: "Data Fetched Successfully",
-        //     data : feed,
-        // });
-    } catch (error) {
-        res.statusCode(400).json({message : error.message});
-    } 
-})
-
-module.exports = router,
+module.exports = userRouter;

@@ -7,40 +7,32 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    minLength: 4,
+    trim: true
   },
   email: {
     type: String,
     required: true,
-  //   validate(value) {
-  //   if (!validator.isEmail(value)) {
-  //     throw new Error('Invalid Email');
-  //   }
-  // }
-},
+    trim: true,
+    unique: true,
+  },
   password: {
     type: String,
     required: true,
-    validator(value) {
-      if (!validator.isStrongPassword(value)) {
-        throw new Error("Create a strong password");
-      }
-    }
+  },
+  age: {
+    type: Number,
+    required: true,
   },
   gender: {
     type: String,
-    // required: true,
-    validate(value) {
-      if (!["male", "female", "other"].includes(value.toLowerCase())) {
-        throw new Error(
-          "Invalid gender. Accepted values are: male, female, other."
-        );
-      }
-    },
   },
   skills: {
     type: Array,
     default: [],
+  },
+  photoURL: {
+    type: String,
+    default: "https://media.istockphoto.com/id/476085198/photo/businessman-silhouette-as-avatar-or-default-profile-picture.jpg?s=2048x2048&w=is&k=20&c=VoujUFmrZr64WwE6MZQAt0Sa0KqlqKXdl35SewxD1WU=",
   }
 },
 {timestamps: true}

@@ -1,18 +1,52 @@
+const e = require("express");
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
+const connectionRequestSchema = new mongoose.Schema({
+  fromUserId: {
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "User",
   },
-  email: {
-    type: String,
+  toUserId: {
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "User",
   },
-  password: {
+  status: {
     type: String,
-    required: true,
+    required : true,
+    default: "interested",
+    enum:{
+      values: ["ignored", "interested", "accepted", "rejected"],
+      message: "{VALUE} is not supported",
+    } ,
   },
-});
-const connectionRequest = mongoose.model("User", userSchema);
-module.exports = connectionRequest;
+},
+{
+  timestamps: true,
+}
+);
+
+// connectionRequestSchema.pre("save", async function (next) {
+//   const connectionRequest = this;
+//   if (connectionRequest.isModified("status")) {
+//     if (connectionRequest.status === "accepted") {
+//       const existingRequest = await connection
+//       Request.findOne({
+//         fromUserId: connectionRequest.toUserId,
+//         toUserId: connectionRequest.fromUserId,
+//         status: "accepted",
+//       });
+//       if (existingRequest) {
+//         throw new Error("Connection already exists");
+//       }
+//     }
+//   }
+//   next();
+// }
+// );
+
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
+
+const connectionRequestModel = mongoose.model("ConnectionRequest", connectionRequestSchema);
+module.exports = connectionRequestModel;

@@ -17,28 +17,10 @@ const userAuth = async (req, res, next) => {
       req.user = user;
       next();
     }
-    
-    // if (user.role === "admin") {
-    //   console.log("Admin is authorized");
-    //   next();
-    // } else {
-    //   res.status(401).send("Unauthorized");
-    // }
   } catch (err) {
     console.log(err);
     res.status(400).send("Error : " + err.message);
   }
 };
-
-// const userAuth = (req, res, next) => {
-//   const token = "xyyz";
-//   const userAuthorized = token === "xyz";
-//   if (userAuthorized) {
-//     console.log("User is authorized");
-//     next();
-//   } else {
-//     res.status(401).send("Unauthorized");
-//   }
-// };
 
 module.exports = { userAuth };
